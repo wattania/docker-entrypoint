@@ -75,7 +75,7 @@ def do_cmd cmds
     if conf[:desc].to_s.size > 0
       puts "#{prefix} #{conf[:desc]}".bold
     end
-    puts "    > #{cmd}"
+    puts "    > #{cmd}".gray
     `#{cmd}`.to_s.split("\n").map{|e| "     #{e}" }.join "\n"
   end
 end
