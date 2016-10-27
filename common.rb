@@ -114,6 +114,15 @@ def compile a_in_paths
   header "Compile Erb"
 
   txt_size = 0
+  m = []
+  a_in_paths.each{|in_path| 
+    src_path = Pathname.new in_path[:src]
+    m.push "SRC Not Exist! : #{src_path}" unless src_path.file?
+  }
+  if m.size > 0
+    m.each{|message| puts message.red }
+    raise "error"
+  end
   a_in_paths.each{|in_path| txt_size = in_path[:src].to_s.size if in_path[:src].to_s.size > txt_size }
   
 
@@ -136,7 +145,7 @@ def compile a_in_paths
     unless dst_path.dirname.directory? 
       FileUtils.mkdir_p dst_path.dirname 
     end
-    puts "#{(idx + 1).to_s.rjust(3, ' ')}) #{src_path.to_s.ljust(txt_size, " ")} : #{dst_path}"
+    puts "#{(idx + 1).to_s.rjust(3, ' ')}) #{src_path.to_s.ljust(txt_size, " ")} => #{dst_path}"
     r = (ERB.new Pathname.new(src_path).read).result
     File.open(dst_path, 'wb'){|f| f.write r }
   end
