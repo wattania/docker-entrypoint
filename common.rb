@@ -127,10 +127,7 @@ def compile a_in_paths
   
 
   a_in_paths.each_with_index do |in_path, idx|
-    a_in_path = in_path[:src]
-    
-    next unless a_in_path.is_a? String
- 
+    a_in_path = in_path[:src].to_s
     src_path = Pathname.new a_in_path
 
     raise "#{src_path} is not end with .erb" unless src_path.to_s.end_with? ".erb"
@@ -168,10 +165,12 @@ def main_exec a_debug = nil
     exec ARGV.join " "
   else  
     cmd = yield
-    if a_debug
-      puts "exec : #{cmd}"
-    else
-      exec cmd
+    if cmd.is_a? String
+      if a_debug
+        puts "exec : #{cmd}"
+      else
+        exec cmd
+      end
     end
   end
 end
