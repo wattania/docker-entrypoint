@@ -75,8 +75,20 @@ def do_cmd cmds
     if conf[:desc].to_s.size > 0
       puts "#{prefix} #{conf[:desc]}".bold
     end
-    puts "    > #{cmd}".gray
-    `#{cmd}`.to_s.split("\n").map{|e| "     #{e}" }.join "\n"
+
+    ret = true
+    ret = false if conf[:skip]
+    if ret and block_given?
+      ret = yield conf, idx 
+    end
+
+      
+    if ret 
+      puts "    > #{cmd}".gray
+      `#{cmd}`.to_s.split("\n").map{|e| "     #{e}" }.join "\n"
+    else
+      puts "    > #{cmd}".gray + "(skip) ".magenta
+    end
   end
 end
 
