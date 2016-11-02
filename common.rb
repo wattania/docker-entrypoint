@@ -32,6 +32,20 @@ end
 PROD_USER_NAME  = ENV['PROD_USER_NAME']
 PROD_USER_UID   = ENV['PROD_USER_UID']
 
+class EnvCompiler
+  include ERB::Util
+
+  def initialize a_filepath 
+    @filepath = Pathname.new(a_filepath)
+    @template = @filepath.read
+    @filename = @filepath.basename.to_s
+  end
+
+  def render
+    ERB.new(@template).result(binding)
+  end
+end
+
 def line
   "==================================================================== "
   "_____________________________________________________________________".gray
@@ -123,6 +137,16 @@ def create_prod_user a_options = {}
 
 end
 
+def require_envs list 
+  list.each{|data|
+    begin
+      ENV.fetch data.to_s 
+    rescue Exception => e
+      puts "ENV: #{data} ".magenta + e.message.to_s.red
+    end
+  }
+end
+
 def compile a_in_paths
   header "Compile Erb"
 
@@ -156,7 +180,9 @@ def compile a_in_paths
       FileUtils.mkdir_p dst_path.dirname 
     end
     puts "#{(idx + 1).to_s.rjust(3, ' ')}) #{src_path.to_s.ljust(txt_size, " ")} => #{dst_path}"
-    r = (ERB.new Pathname.new(src_path).read).result
+
+    r = EnvCompiler.new(src_path).render
+    #r = (ERB.new Pathname.new(src_path).read).result
     File.open(dst_path, 'wb'){|f| f.write r }
   end
   puts
