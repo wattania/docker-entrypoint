@@ -42,7 +42,12 @@ class EnvCompiler
   end
 
   def render
-    ERB.new(@template).result(binding)
+    begin
+      ERB.new(@template).result(binding)
+    rescue Exception => e 
+      puts "Compile ENV: #{e} : #{@filepath}".red
+      abort
+    end
   end
 end
 
