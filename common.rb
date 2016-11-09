@@ -29,6 +29,8 @@ class String
   def reverse_color;  "\e[7m#{self}\e[27m" end
 end
 
+WORKING_DIR = Pathname.new Dir.pwd
+
 PROD_USER_NAME  = ENV['PROD_USER_NAME']
 PROD_USER_UID   = ENV['PROD_USER_UID']
 
@@ -199,6 +201,34 @@ def touch a_list
     file_path = Pathname.new file_config[:path]
     FileUtils.mkdir_p file_path.dirname unless file_path.dirname.directory?
     `touch #{file_path}` unless file_path.file?
+  }
+end
+
+def script_aliases a_opts = {}
+  opts = a_opts 
+  opts = {} unless opts.is_a? Hash
+  dir   = opts.fetch :dir, "/scripts"
+  exts  = opts.fetch :extensions, ["rb"]
+
+  return unless dir.is_a? String
+  return unless exts.is_a? Array
+
+  scripts = []
+  script_dir = Pathname.new dir 
+  if script_dir.directory?
+    
+    exts.each{|ext|
+      paths = Dir.glob(script_dir.join "*.#{ext}").map{|e| Pathname.new e }.select{|e| e.file? }
+      paths.each{|path|
+        scripts << {target: path, ext: ext, link_name: (WORKING_DIR.join File.basename(path.to_s, ".#{ext}"))}
+      } 
+    }
+  end
+
+  scripts.each{|script|
+    puts "Create Alias for #{script[:target]} to #{script[:link_name]}".bold.magenta
+    `rm -f #{script[:link_name]}` if script[:link_name].exist?
+    `ln -s #{script[:target]} #{script[:link_name]}`
   }
 end
 
