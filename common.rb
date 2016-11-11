@@ -216,22 +216,32 @@ def script_aliases a_opts = {}
 
   dir   = opts.fetch :dir, "/scripts"
   exts  = opts.fetch :extensions, ["rb"]
+  bin_dir = Pathname.new opts.fetch :bin_dir, "/opt/bin"
 
   return unless dir.is_a? String
   return unless exts.is_a? Array
+  unless bin_dir.to_s.start_with? "/"
+    return abort "Script Bin Path should be full path! (start with \"/\").".red
+  end
+  puts "bin path => #{bin_dir}"
+  `mkdir -p #{bin_dir}` unless bin_dir.directory?
+  `chown -R #{PROD_USER_NAME} #{bin_dir}`
+  `rm -rf #{bin_dir.join '*'}`
 
   scripts = []
   script_dir = Pathname.new dir 
   if script_dir.directory?
     
     exts.each_with_index{|ext, idx|
-      paths = Dir.glob(script_dir.join "*.#{ext}").map{|e| Pathname.new e }.select{|e| e.file? }
+      paths = Dir.glob(script_dir.join "**/*.#{ext}").map{|e| Pathname.new e }.select{|e| e.file? }
       paths.each{|path|
         file_with_ext = File.basename(path.to_s, ".#{ext}")
+        cmd = 
         scripts << {
+          run_as_prod_user: (path.to_s.split('prod_user').size > 1),
           target: path, 
           ext: ext, 
-          cmd: "/usr/local/bin/#{file_with_ext}",
+          cmd: bin_dir.join(file_with_ext.to_s),
           link_name: (WORKING_DIR.join file_with_ext),
           interpreter: ext_interpreters.fetch(ext.to_s.to_sym, "ruby")
         }
@@ -243,12 +253,12 @@ def script_aliases a_opts = {}
     puts "#{idx + 1}) Create Alias for #{script[:target]} => #{script[:cmd]}".bold
     
     c = "#{script[:interpreter]} #{script[:target]}"
-    if opts.fetch :run_as_prod_user, true
+    if script[:run_as_prod_user]
       if PROD_USER_NAME.to_s.size <= 0
         puts "No Prod User defined! ".red.bold
         raise "error" 
       end
-      c = "runuser #{PROD_USER_NAME} -c '#{c}'"
+      c = "runuser #{PROD_USER_NAME} -c '#{c}argv'"
     end
 
     require_common = Pathname.new "/entrypoint-common.rb"
@@ -264,7 +274,12 @@ template = <<-CMD
 #!#{default_ruby}
 #{require_common}
 
-cmd = "#{c}"
+argv = ""
+if ARGV.size > 0
+  argv = " " + (ARGV.join " ")
+end
+
+cmd = "#{c}".sub 'argv', argv
 puts cmd
 exec cmd
 CMD
