@@ -218,6 +218,12 @@ def script_aliases a_opts = {}
   exts  = opts.fetch :extensions, ["rb"]
   bin_dir = Pathname.new opts.fetch :bin_dir, "/opt/bin"
 
+  # check Env Path for #{bin_dir}
+  pp ENV.fetch "PATH"
+  if (ENV.fetch "PATH").index(bin_dir.to_s).nil?
+    abort "FATAL: $PATH not include #{bin_dir} !!!".bold.red.underline
+  end
+  
   return unless dir.is_a? String
   return unless exts.is_a? Array
   unless bin_dir.to_s.start_with? "/"
