@@ -154,7 +154,7 @@ def require_envs list
   }
 end
 
-def compile a_in_paths
+def compile a_in_paths, klass = EnvCompiler
   header "Compile Erb"
 
   txt_size = 0
@@ -188,7 +188,7 @@ def compile a_in_paths
     end
     puts "#{(idx + 1).to_s.rjust(3, ' ')}) #{src_path.to_s.ljust(txt_size, " ")} => #{dst_path}"
 
-    r = EnvCompiler.new(src_path).render
+    r = klass.new(src_path).render
     #r = (ERB.new Pathname.new(src_path).read).result
     File.open(dst_path, 'wb'){|f| f.write r }
   end
