@@ -252,35 +252,28 @@ def script_aliases a_opts = {}
   scripts.each_with_index{|script, idx|
     puts "#{idx + 1}) Create Alias for #{script[:target]} => #{script[:cmd]}".bold
     
-    c = "#{script[:interpreter]} #{script[:target]}"
+    c = "#{script[:interpreter]} #{script[:target]} argv"
     if script[:run_as_prod_user]
       if PROD_USER_NAME.to_s.size <= 0
         puts "No Prod User defined! ".red.bold
         raise "error" 
       end
-      c = "runuser #{PROD_USER_NAME} -c '#{c}argv'"
+      c = "runuser #{PROD_USER_NAME} -c '#{c} argv'"
     end
 
     require_common = Pathname.new "/entrypoint-common.rb"
-    unless require_common.file?
-      require_common = "require #{require_common}" 
+    if require_common.file?
+      require_common = "require '#{require_common}'" 
     else
       require_common = "" 
     end
     
-
-
 template = <<-CMD
 #!#{default_ruby}
 #{require_common}
 
-argv = ""
-if ARGV.size > 0
-  argv = " " + (ARGV.join " ")
-end
-
-cmd = "#{c}".sub 'argv', argv
-puts cmd
+cmd = "#{c}".sub 'argv', (ARGV.join " ")
+puts "EXEC >> ".green + cmd
 exec cmd
 CMD
     File.open(script[:cmd], "wb"){|f| f.write template }
