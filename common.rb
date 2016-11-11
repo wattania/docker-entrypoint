@@ -205,8 +205,15 @@ def touch a_list
 end
 
 def script_aliases a_opts = {}
+  default_ruby = `which ruby`
+  ext_interpreters = {
+    rb:     "ruby",
+    coffee: "coffee"
+  } 
+
   opts = a_opts 
   opts = {} unless opts.is_a? Hash
+
   dir   = opts.fetch :dir, "/scripts"
   exts  = opts.fetch :extensions, ["rb"]
 
@@ -217,18 +224,52 @@ def script_aliases a_opts = {}
   script_dir = Pathname.new dir 
   if script_dir.directory?
     
-    exts.each{|ext|
+    exts.each_with_index{|ext, idx|
       paths = Dir.glob(script_dir.join "*.#{ext}").map{|e| Pathname.new e }.select{|e| e.file? }
       paths.each{|path|
-        scripts << {target: path, ext: ext, link_name: (WORKING_DIR.join File.basename(path.to_s, ".#{ext}"))}
+        file_with_ext = File.basename(path.to_s, ".#{ext}")
+        scripts << {
+          target: path, 
+          ext: ext, 
+          cmd: "/usr/local/bin/#{file_with_ext}",
+          link_name: (WORKING_DIR.join file_with_ext),
+          interpreter: ext_interpreters.fetch(ext.to_s.to_sym, "ruby")
+        }
       } 
     }
   end
 
-  scripts.each{|script|
-    puts "Create Alias for #{script[:target]} to #{script[:link_name]}".bold.magenta
-    `rm -f #{script[:link_name]}` if script[:link_name].exist?
-    `ln -s #{script[:target]} #{script[:link_name]}`
+  scripts.each_with_index{|script, idx|
+    puts "#{idx + 1}) Create Alias for #{script[:target]} => #{script[:cmd]}".bold
+    
+    c = "#{script[:interpreter]} #{script[:target]}"
+    if opts.fetch :run_as_prod_user, true
+      if PROD_USER_NAME.to_s.size <= 0
+        puts "No Prod User defined! ".red.bold
+        raise "error" 
+      end
+      c = "runuser #{PROD_USER_NAME} -c '#{c}'"
+    end
+
+    require_common = Pathname.new "/entrypoint-common.rb"
+    unless require_common.file?
+      require_common = "require #{require_common}" 
+    else
+      require_common = "" 
+    end
+    
+
+
+template = <<-CMD
+#!#{default_ruby}
+#{require_common}
+
+cmd = "#{c}"
+puts cmd
+exec cmd
+CMD
+    File.open(script[:cmd], "wb"){|f| f.write template }
+    `chmod +x #{script[:cmd]}`
   }
 end
 
