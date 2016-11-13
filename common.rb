@@ -94,8 +94,9 @@ def do_cmd cmds
   cmds.each_with_index do |conf, idx| 
     cmd = conf[:cmd]
     prefix = "#{(idx + 1).to_s.rjust(3, ' ')}) "
+    desc = ""
     if conf[:desc].to_s.size > 0
-      puts "#{prefix} #{conf[:desc]}".bold
+      desc = "#{prefix} #{conf[:desc]}".bold.green
     end
 
     ret = true
@@ -106,10 +107,10 @@ def do_cmd cmds
 
       
     if ret 
-      puts "    > #{cmd}".gray
+      puts "#{desc} > #{cmd}".gray
       `#{cmd}`.to_s.split("\n").map{|e| "     #{e}" }.join "\n"
     else
-      puts "    > #{cmd}".gray + "(skip) ".magenta
+      puts "#{desc} > #{cmd}".gray + "(skip) ".magenta
     end
   end
 end
