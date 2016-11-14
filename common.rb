@@ -265,7 +265,7 @@ def script_aliases a_opts = {}
         puts "No Prod User defined! ".red.bold
         raise "error" 
       end
-      c = "runuser #{PROD_USER_NAME} -c '#{c} argv'"
+      c = "runuser #{PROD_USER_NAME} -c '#{c}'"
     end
 
     require_common = Pathname.new "/entrypoint-common.rb"
