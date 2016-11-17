@@ -280,7 +280,7 @@ template = <<-CMD
 #{require_common}
 
 cmd = "#{c}".sub 'argv', (ARGV.join " ")
-puts "EXEC >> ".green + cmd
+puts ("# " + cmd).bold
 exec cmd
 CMD
     File.open(script[:cmd], "wb"){|f| f.write template }
