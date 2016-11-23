@@ -275,7 +275,7 @@ def script_aliases a_opts = {}
         puts "No Prod User defined! ".red.bold
         raise "error" 
       end
-      c = "runuser #{PROD_USER_NAME} -c '#{c} argv'"
+      c = "runuser #{PROD_USER_NAME} -c '#{c}'"
     end
 
     require_common = Pathname.new "/entrypoint-common.rb"
@@ -290,7 +290,7 @@ template = <<-CMD
 #{require_common}
 
 cmd = "#{c}".sub 'argv', (ARGV.join " ")
-puts "EXEC >> ".green + cmd
+puts ("# " + cmd).bold
 exec cmd
 CMD
     File.open(script[:cmd], "wb"){|f| f.write template }
