@@ -43,6 +43,16 @@ class EnvCompiler
     @filename = @filepath.basename.to_s
   end
 
+  def env name
+    begin
+      ENV.fetch name  
+    rescue Exception => e
+      puts "ENV key not error (#{name}) ".red 
+      abort e.message
+    end
+    
+  end
+
   def render
     begin
       ERB.new(@template).result(binding)
@@ -299,7 +309,12 @@ def main_exec a_debug = nil
       if a_debug
         puts "exec : #{cmd}"
       else
-        exec cmd
+        case ARGV.first
+        when "no_exec"
+          puts "== no_exec =="
+        else
+          exec cmd
+        end
       end
     end
   end
