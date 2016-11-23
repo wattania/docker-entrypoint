@@ -301,20 +301,20 @@ end
 def main_exec a_debug = nil
   header "Main Exec"
   if ARGV.size > 0
-    puts "Run Bash: " if a_debug
-    exec ARGV.join " "
+    case ARGV.first
+    when "no_exec"
+      puts "-- no exec --"
+    else
+      exec ARGV.join " "
+    end
+    
   else  
     cmd = yield
     if cmd.is_a? String
       if a_debug
         puts "exec : #{cmd}"
       else
-        case ARGV.first
-        when "no_exec"
-          puts "== no_exec =="
-        else
-          exec cmd
-        end
+        exec cmd
       end
     end
   end
