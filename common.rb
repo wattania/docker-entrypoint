@@ -277,14 +277,15 @@ def script_aliases a_opts = {}
       end
       c = "runuser #{PROD_USER_NAME} -c '#{c}'"
     end
-
-    require_common = Pathname.new "/entrypoint-common.rb"
-    if require_common.file?
-      require_common = "require '#{require_common}'" 
-    else
-      require_common = "" 
-    end
     
+    require_common = nil
+    ["/entrypoint-common.rb", "/docker-entrypoint/common.rb"].each{|path|
+      next if require_common
+      if Pathname.new(path).file?
+        require_common = "require '#{path}'"
+      end
+    }
+
 template = <<-CMD
 #!#{default_ruby}
 #{require_common}
