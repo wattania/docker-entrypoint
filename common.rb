@@ -215,6 +215,31 @@ def touch a_list
   }
 end
 
+def thor_tasks
+  if ENV['HOME']
+    thor_home = Pathname.new(ENV['HOME']).join ".thor"
+    if thor_home.directory?
+      `rm -rf #{thor_home}`
+    end
+  end
+
+  tasks_path = ENV['THOR_TASKS'].to_s 
+  if tasks_path.size <= 0
+    tasks_path = "/thor_tasks"
+  end
+
+  tasks_path = Pathname.new tasks_path
+  return unless tasks_path.directory?
+
+  Dir.glob(tasks_path.join("*.thor").to_s).each{|file|
+    thor_file = Pathname.new file
+    cmd = "thor install #{file} --force --as=#{thor_file.basename}"
+    puts cmd
+    `#{cmd}`
+  }
+
+end
+
 def script_aliases a_opts = {}
   default_ruby = `which ruby`
   ext_interpreters = {
