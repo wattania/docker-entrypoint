@@ -325,16 +325,17 @@ CMD
 end
 
 def main_exec a_debug = nil
-  puts "---x--x--"
-  pp Process.pid
-  abort ""
   header "Main Exec"
+  if Process.pid == 1
+    puts "[INFO] This process id is not number 1 so do not exec command.".green.bold
+  end
+
   if ARGV.size > 0
     case ARGV.first
     when "no_exec"
       puts "-- no exec --"
     else
-      exec ARGV.join " "
+      exec ARGV.join " " if Process.pid == 1
     end
     
   else  
@@ -343,7 +344,7 @@ def main_exec a_debug = nil
       if a_debug
         puts "exec : #{cmd}"
       else
-        exec cmd
+        exec cmd if Process.pid == 1
       end
     end
   end
