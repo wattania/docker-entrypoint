@@ -326,10 +326,8 @@ end
 
 def main_exec a_debug = nil
   header "Main Exec"
-  if Process.pid == 1
-    puts "[INFO] This process id is not number 1 so do not exec command.".green.bold
-  end
-
+  puts "[INFO] This process id is not number 1 so do not exec command.".green.bold unless Process.pid == 1
+  
   if ARGV.size > 0
     case ARGV.first
     when "no_exec"
