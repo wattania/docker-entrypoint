@@ -325,6 +325,9 @@ CMD
 end
 
 def main_exec a_debug = nil
+  puts "---x--x--"
+  pp Process.pid
+  abort ""
   header "Main Exec"
   if ARGV.size > 0
     case ARGV.first
