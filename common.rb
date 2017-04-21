@@ -3,6 +3,10 @@ require 'fileutils'
 require 'erb'
 require 'pp'
 
+def entrypoint?
+  Process.pid == 1
+end
+
 class String
   def black;          "\e[30m#{self}\e[0m" end
   def red;            "\e[31m#{self}\e[0m" end
@@ -326,14 +330,14 @@ end
 
 def main_exec a_debug = nil
   header "Main Exec"
-  puts "[INFO] This process id is not number 1 so do not exec command.".green.bold unless Process.pid == 1
+  puts "[INFO] This process id is not number 1 so do not exec command.".green.bold unless entrypoint?
   
   if ARGV.size > 0
     case ARGV.first
     when "no_exec"
       puts "-- no exec --"
     else
-      exec ARGV.join " " if Process.pid == 1
+      exec ARGV.join " " if entrypoint?
     end
     
   else  
@@ -342,7 +346,7 @@ def main_exec a_debug = nil
       if a_debug
         puts "exec : #{cmd}"
       else
-        exec cmd if Process.pid == 1
+        exec cmd if entrypoint?
       end
     end
   end
