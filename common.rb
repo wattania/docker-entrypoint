@@ -351,3 +351,27 @@ def main_exec a_debug = nil
     end
   end
 end
+
+######################################################
+def thor_requires a_self_file, require_lists
+  root_script_dir = nil
+  thor_root_yml = Pathname.new(File.expand_path a_self_file).dirname.join 'thor.yml'
+  if thor_root_yml.file?
+    thor_yml_data = YAML.load thor_root_yml.read
+    thor_yml_data.each{|thor_name, config|
+      if config[:filename] == Pathname.new(a_self_file).basename.to_s
+        root_script_dir = Pathname.new(config[:location]).dirname
+      end
+    }
+  else
+    root_script_dir = Pathname.new(File.expand_path a_self_file).dirname
+  end
+
+  if root_script_dir.nil?
+    abort "Please contact administrator.!".red
+  else
+    require_lists.map{|e| root_script_dir.join e }.each{|name| require name }
+  end
+end
+##############################################################################################################################
+##############################################################################################################################
