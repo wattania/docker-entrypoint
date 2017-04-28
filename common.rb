@@ -130,6 +130,8 @@ def do_cmd cmds
 end
 
 def create_prod_user a_options = {}
+  return unless entrypoint?
+
   a_username = PROD_USER_NAME
   a_user_uid = PROD_USER_UID
 
