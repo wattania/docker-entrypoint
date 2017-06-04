@@ -396,7 +396,7 @@ if ENV['RUN_CONF']
       if RUN_CONF.has_key? a_key
         RUN_CONF.fetch a_key
       else
-        raise "Run Conf has no key : \"#{a_key}\" !!".red
+        raise "Run CONF has no key : \"#{a_key}\" !!".red
       end
     end
   end
@@ -404,11 +404,11 @@ end
 
 if ENV['RUN_VARS']
   RUN_VARS = (JWT.decode ENV['RUN_VARS'], nil, false).first
-  def fetch_run_vars a_key, a_default = nil
-    if RUN_CONF.has_key? a_key
-      RUN_CONF.fetch a_key
+  def fetch_run_vars a_key
+    if RUN_VARS.has_key? a_key
+      RUN_VARS.fetch a_key
     else
-      raise "Run Vars has no key : \"#{a_key}\" !!".red
+      raise "Run VARS has no key : \"#{a_key}\" !!".red
     end
   end
 end
