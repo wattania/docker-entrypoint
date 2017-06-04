@@ -1,10 +1,42 @@
 require 'pathname'
 require 'fileutils'
+require 'jwt'
 require 'erb'
 require 'pp'
 
 def entrypoint?
   Process.pid == 1
+end
+
+require 'ostruct'
+class OpenStruct 
+  def openstruct_to_hash(object, hash = {})
+    if object.is_a? OpenStruct 
+      object.each_pair do |_key, value|
+        key = _key.to_s.to_sym
+        vv = value
+        if value.is_a? OpenStruct
+          hash[key] = openstruct_to_hash(value)
+        elsif value.is_a? Array 
+          hash[key] = []
+          value.each{|_v| hash[key].push openstruct_to_hash _v }
+        else
+          hash[key] = value
+        end
+      end
+      hash
+    else
+      object
+    end
+  end
+
+  def to_json
+    to_h.to_json
+  end
+
+  def to_h 
+    openstruct_to_hash self
+  end
 end
 
 class String
@@ -350,6 +382,74 @@ def main_exec a_debug = nil
       else
         exec cmd if entrypoint?
       end
+    end
+  end
+end
+
+if ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
+  class DockerfileGitInfo
+    def initialize
+      token = ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s
+      @info = JWT.decode token, nil, false
+    end
+
+    def info
+      JSON.parse @info.to_json, object_class: 'OpenStruct'
+    end
+  end
+end
+
+def dockerfile_git_info
+  if ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
+    DockerfileGitInfo.new
+  else
+    nil
+  end
+end
+
+if ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
+  class ComposeGitInfo
+    def initialize
+      token = ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s
+      @info = JWT.decode token, nil, false
+    end
+
+    def info
+      JSON.parse @info.to_json, object_class: 'OpenStruct'
+    end
+  end
+end
+
+if ENV['RUN_CONF']
+  class RunConfig
+    def initialize
+      @data = JWT.decode ENV['RUN_CONF'], nil, false
+      @data_struct = JSON.parse @data.to_json, object_class: 'OpenStruct'
+    end
+
+    def struct 
+      @data_struct 
+    end
+
+    def data 
+      @data
+    end
+  end
+end
+
+if ENV['RUN_VARS']
+  class RunConfig
+    def initialize
+      @data = JWT.decode ENV['RUN_VARS'], nil, false
+      @data_struct = JSON.parse @data.to_json, object_class: 'OpenStruct'
+    end
+
+    def struct 
+      @data_struct 
+    end
+
+    def data 
+      @data
     end
   end
 end
