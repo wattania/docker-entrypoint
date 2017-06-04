@@ -8,37 +8,6 @@ def entrypoint?
   Process.pid == 1
 end
 
-require 'ostruct'
-class OpenStruct 
-  def openstruct_to_hash(object, hash = {})
-    if object.is_a? OpenStruct 
-      object.each_pair do |_key, value|
-        key = _key.to_s.to_sym
-        vv = value
-        if value.is_a? OpenStruct
-          hash[key] = openstruct_to_hash(value)
-        elsif value.is_a? Array 
-          hash[key] = []
-          value.each{|_v| hash[key].push openstruct_to_hash _v }
-        else
-          hash[key] = value
-        end
-      end
-      hash
-    else
-      object
-    end
-  end
-
-  def to_json
-    to_h.to_json
-  end
-
-  def to_h 
-    openstruct_to_hash self
-  end
-end
-
 class String
   def black;          "\e[30m#{self}\e[0m" end
   def red;            "\e[31m#{self}\e[0m" end
@@ -421,37 +390,11 @@ if ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
 end
 
 if ENV['RUN_CONF']
-  class RunConfig
-    def initialize
-      @data = JWT.decode ENV['RUN_CONF'], nil, false
-      @data_struct = JSON.parse @data.to_json, object_class: 'OpenStruct'
-    end
-
-    def struct 
-      @data_struct 
-    end
-
-    def data 
-      @data
-    end
-  end
+  RUN_CONF = (JWT.decode ENV['RUN_CONF'], nil, false).first
 end
 
 if ENV['RUN_VARS']
-  class RunConfig
-    def initialize
-      @data = JWT.decode ENV['RUN_VARS'], nil, false
-      @data_struct = JSON.parse @data.to_json, object_class: 'OpenStruct'
-    end
-
-    def struct 
-      @data_struct 
-    end
-
-    def data 
-      @data
-    end
-  end
+  RUN_VARS = (JWT.decode ENV['RUN_VARS'], nil, false).first
 end
 
 ######################################################
