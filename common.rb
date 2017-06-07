@@ -360,7 +360,7 @@ if ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
     def initialize
       token = ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s
       #@info = JWT.decode token, nil, false
-      @info = JSON.parse Base64.decode64 token
+      @info = JSON.parse Base64.decode64 token.split("^").join("\n")
     end
 
     def info
@@ -381,7 +381,7 @@ if ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
   class ComposeGitInfo
     def initialize
       token = ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s
-      @info = JSON.parse Base64.decode64 token
+      @info = JSON.parse Base64.decode64 token.split("^").join("\n")
     end
 
     def info
@@ -391,7 +391,7 @@ if ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
 end
 
 if ENV['RUN_CONF']
-  RUN_CONF = JSON.parse Base64.decode64 ENV.fetch 'RUN_CONF'
+  RUN_CONF = JSON.parse Base64.decode64 ENV.fetch('RUN_CONF').split("^").join("\n")
   if RUN_CONF.is_a? Hash
     def fetch_run_conf a_key
       if RUN_CONF.has_key? a_key
@@ -404,7 +404,7 @@ if ENV['RUN_CONF']
 end
 
 if ENV['RUN_VARS']
-  RUN_VARS = JSON.parse Base64.decode64 ENV.fetch 'RUN_VARS'
+  RUN_VARS = JSON.parse Base64.decode64 ENV.fetch('RUN_VARS').split("^").join("\n")
   def fetch_run_vars a_key
     if RUN_VARS.has_key? a_key
       RUN_VARS.fetch a_key
