@@ -1,8 +1,8 @@
 require 'pathname'
 require 'fileutils'
-require 'jwt'
 require 'erb'
 require 'pp'
+require 'json'
 
 def entrypoint?
   Process.pid == 1
@@ -359,7 +359,8 @@ if ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
   class DockerfileGitInfo
     def initialize
       token = ENV['DOCKERFILE_GIT_INFO'].to_s.split("___").last.to_s
-      @info = JWT.decode token, nil, false
+      #@info = JWT.decode token, nil, false
+      @info = JSON.parse Base64.decode64 token
     end
 
     def info
@@ -380,7 +381,7 @@ if ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
   class ComposeGitInfo
     def initialize
       token = ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s
-      @info = JWT.decode token, nil, false
+      @info = JSON.parse Base64.decode64 token
     end
 
     def info
@@ -390,7 +391,7 @@ if ENV['COMPOSE_GIT_INFO'].to_s.split("___").last.to_s.size > 0
 end
 
 if ENV['RUN_CONF']
-  RUN_CONF = (JWT.decode ENV['RUN_CONF'], nil, false).first
+  RUN_CONF = JSON.parse Base64.decode64 ENV.fetch 'RUN_CONF'
   if RUN_CONF.is_a? Hash
     def fetch_run_conf a_key
       if RUN_CONF.has_key? a_key
@@ -403,7 +404,7 @@ if ENV['RUN_CONF']
 end
 
 if ENV['RUN_VARS']
-  RUN_VARS = (JWT.decode ENV['RUN_VARS'], nil, false).first
+  RUN_VARS = JSON.parse Base64.decode64 ENV.fetch 'RUN_VARS'
   def fetch_run_vars a_key
     if RUN_VARS.has_key? a_key
       RUN_VARS.fetch a_key
