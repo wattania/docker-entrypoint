@@ -239,13 +239,15 @@ def thor_tasks
   tasks_path = Pathname.new tasks_path
   return unless tasks_path.directory?
 
+  FileUtils.ln_s tasks_path, "/tasks"
+=begin
   Dir.glob(tasks_path.join("*.thor").to_s).each{|file|
     thor_file = Pathname.new file
     cmd = "thor install #{file} --force --as=#{thor_file.basename}"
     puts cmd
     `#{cmd}`
   }
-
+=end
 end
 
 def script_aliases a_opts = {}
