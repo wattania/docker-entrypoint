@@ -419,6 +419,17 @@ if ENV['RUN_VARS']
       raise "Run VARS has no key : \"#{a_key}\" !!".red
     end
   end
+else
+  def fetch_run_vars a_key
+    
+    begin
+      ENV.fetch a_key
+    rescue Exception => e
+      puts e.message.bold.red
+      raise "Run VARS has no key : \"#{a_key}\" !!".red unless ENV.keys.include? a_key  
+    end
+  
+  end
 end
 
 ######################################################
