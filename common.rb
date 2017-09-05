@@ -132,35 +132,36 @@ def do_cmd cmds
 end
 
 def create_prod_user a_options = {}
-  return unless entrypoint?
 
-  a_username = PROD_USER_NAME
-  a_user_uid = PROD_USER_UID
+  a_username = a_options.fetch :PROD_USER_NAME, PROD_USER_NAME
+  a_user_uid = a_options.fetch :PROD_USER_UID, PROD_USER_UID
 
   home_dir = a_options[:home].to_s
 
-  require_prod_user
-  header "Create Prod User"
-  
-  user_passwd = `getent passwd #{PROD_USER_NAME}`.to_s.split ":"
+  require_prod_user if PROD_USER_NAME == a_username
+  header_txt = "Create Prod User (#{a_username})"
+  header header_txt
 
-  user_name   = user_passwd.first
-  user_uid    = user_passwd[2]
-  user_gid    = user_passwd[3]
-
-  #return if user_uid.to_s == a_user_uid.to_s and a_username.to_s == user_name.to_s
-  #prodenv1:x:1001:1001::/home/prodenv1:/bin/bash
-
-  cmds = ["useradd", "-u #{a_user_uid}", "-s /bin/bash"]
+  cmds = ["useradd"]
+  cmds << "-u #{a_user_uid}" if a_user_uid
+  cmds << "-s /bin/bash"
   cmds.concat ["-d #{home_dir}"] if home_dir.size > 0
   cmds.push a_username
   cmd = cmds.join " "
+ 
+  existed_user = `id #{a_username}`.strip
+  if existed_user.size > 0
+    m = existed_user.match /^uid=(\d*)\((\S*)\)\s.*\)$/
+    if m
+      cmd = nil if m[1] == a_user_uid and m[2] == a_username
+    end
+  end
 
-  do_cmd [
-    {cmd: "userdel #{a_username}",  desc: "Remove user #{a_username}"                       },
-    {cmd: cmd,                      desc: "Add user #{a_username} with uid = #{a_user_uid}" }
-  ]
-
+  if cmd
+    system "userdel #{a_username}"
+    res = system cmd 
+    raise (header_txt + " ERROR !!").red unless res
+  end
 end
 
 def require_envs list 
@@ -238,8 +239,11 @@ def thor_tasks
 
   tasks_path = Pathname.new tasks_path
   return unless tasks_path.directory?
-
-  FileUtils.ln_s tasks_path, "/tasks"
+  
+  tasks_link_path = Pathname.new "/tasks"
+  unless File.symlink? tasks_link_path
+    FileUtils.ln_s tasks_path, tasks_link_path
+  end
 =begin
   Dir.glob(tasks_path.join("*.thor").to_s).each{|file|
     thor_file = Pathname.new file
