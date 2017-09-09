@@ -131,6 +131,16 @@ def do_cmd cmds
   end
 end
 
+def create_tun_device
+  dev = "/dev/net/tun"
+  header "Create Device #{dev}"
+  
+  dev_net_path = Pathname.new dev
+  dev_net_path.dirname.mkpath unless dev_net_path.dirname.exist?
+
+  puts `mknod #{dev} c 10 200` unless dev_net_path.exist?
+end
+
 def create_prod_user a_options = {}
 
   a_username = a_options.fetch :PROD_USER_NAME, PROD_USER_NAME
