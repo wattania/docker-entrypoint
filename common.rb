@@ -242,13 +242,11 @@ def thor_tasks a_task_path = nil
 
   tasks_path = ENV['THOR_TASKS'].to_s
   tasks_path = '/thor_tasks' if tasks_path.empty?
-
   tasks_path = if a_task_path.nil?
-                 Pathname.new a_task_path
+                 Pathname.new task_path
                else
-                 Pathname.new tasks_path
+                 Pathname.new a_task_path
                end
-
   return unless tasks_path.directory?
 
   tasks_link_path = Pathname.new '/tasks'
