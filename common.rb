@@ -234,34 +234,26 @@ def touch a_list
   }
 end
 
-def thor_tasks
+def thor_tasks a_task_path = nil
   if ENV['HOME']
-    thor_home = Pathname.new(ENV['HOME']).join ".thor"
-    if thor_home.directory?
-      `rm -rf #{thor_home}`
-    end
+    thor_home = Pathname.new(ENV['HOME']).join '.thor'
+    `rm -rf #{thor_home}` if thor_home.directory?
   end
 
-  tasks_path = ENV['THOR_TASKS'].to_s 
-  if tasks_path.size <= 0
-    tasks_path = "/thor_tasks"
-  end
+  tasks_path = ENV['THOR_TASKS'].to_s
+  tasks_path = '/thor_tasks' if tasks_path.empty?
 
-  tasks_path = Pathname.new tasks_path
+  tasks_path = if a_task_path.nil?
+                 Pathname.new a_task_path
+               else
+                 Pathname.new tasks_path
+               end
+
   return unless tasks_path.directory?
-  
-  tasks_link_path = Pathname.new "/tasks"
-  unless File.symlink? tasks_link_path
-    FileUtils.ln_s tasks_path, tasks_link_path
-  end
-=begin
-  Dir.glob(tasks_path.join("*.thor").to_s).each{|file|
-    thor_file = Pathname.new file
-    cmd = "thor install #{file} --force --as=#{thor_file.basename}"
-    puts cmd
-    `#{cmd}`
-  }
-=end
+
+  tasks_link_path = Pathname.new '/tasks'
+  return if File.symlink? tasks_link_path
+  FileUtils.ln_s tasks_path, tasks_link_path
 end
 
 def script_aliases a_opts = {}
