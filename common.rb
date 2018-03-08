@@ -347,7 +347,7 @@ def main_exec a_debug = nil
     when "no_exec"
       puts "-- no exec --"
     else
-      exec ARGV.join " " if entrypoint?
+      exec ARGV.join " " # if entrypoint?
     end
     
   else  
